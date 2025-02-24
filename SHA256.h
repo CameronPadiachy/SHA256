@@ -20,9 +20,11 @@ class SHA256{
     uint32_t BigSigma_1(uint32_t x);
     uint32_t sigma_0(uint32_t x);
     uint32_t sigma_1(uint32_t x);
+    uint32_t S(uint32_t x, int y);
+    uint32_t R(uint32_t x, int y);
     uint32_t H[8];
     uint32_t a, b, c, d, e, f, g, h;
-
+    uint32_t K[64];
 };
 
 
