@@ -4,6 +4,9 @@
 #include <bit>
 #include <vector>
 #include <cmath>
+#include <string>
+#include <sstream> // For stringstream
+#include <iomanip> // For setw and setfill
 
 using namespace std;
 
@@ -12,9 +15,11 @@ SHA256::SHA256(){
 }
 
 bitset<32> operator+(const bitset<32>& lhs, const bitset<32>& rhs) {
-    unsigned long result = (lhs.to_ulong() + rhs.to_ulong()) % (1UL << 32);
-    return bitset<32>(result);
+    uint64_t sum = static_cast<uint64_t>(lhs.to_ulong()) + static_cast<uint64_t>(rhs.to_ulong());
+    sum %= 0x100000000ULL; // modulo 2^32
+    return bitset<32>(static_cast<unsigned long>(sum));
 }
+
 
 void SHA256::initialize(){
     // initial hash value for algorithm
@@ -108,12 +113,25 @@ bitset<32>* SHA256::message_schedule(vector<bitset<8>> padded_in, size_t index){
     return w_p;
 }
 
+//gpt debugging:
+void printHexadecimal(const vector<bitset<8>>& paddedMessage) {
+    for (const auto& bitsetByte : paddedMessage) {
+        // Convert each bitset<8> to a hex string and print it
+        unsigned long byte = bitsetByte.to_ulong();
+        printf("%02lx", byte);  // print in two-character hexadecimal format
+    }
+    cout << endl;  // Move to a new line after printing the whole padded message
+}
+
 string SHA256:: sha_hash(){
     string input;
     cin >> input;
     vector<bitset<8>> word = padding(input);
+    cout<<"padded message: ";
+    printHexadecimal(word);
     int word_size = word.size()*8;
-    for (int i=0; i<=word_size/512; i++){ //parsing paddedmessage into 512 bit blocks
+    cout<<word_size<<endl;
+    for (int i=0; i<word_size/512; i++){ //parsing paddedmessage into 512 bit blocks
         a = H[0];
         b = H[1];
         c = H[2];
@@ -124,8 +142,8 @@ string SHA256:: sha_hash(){
         h = H[7];
 
         uint32_t T1, T2;
-        bitset<32>* W = message_schedule(word, i*512);
-        for (int j = 0; j<=63; j++){
+        bitset<32>* W = message_schedule(word, i*64);
+        for (int j = 0; j<64; j++){
             T1 = h + BigSigma_1(e) + Ch(e,f,g) + K[j] + (W[j].to_ulong());
             T2 = BigSigma_0(a) + Maj(a,b,c);
             h = g;
@@ -137,6 +155,7 @@ string SHA256:: sha_hash(){
             b = a;
             a = T1 + T2;
         }
+        delete[] W;
         H[0] = a + H[0];
         H[1] = b + H[1];
         H[2] = c + H[2];
@@ -145,10 +164,13 @@ string SHA256:: sha_hash(){
         H[5] = f + H[5];
         H[6] = g + H[6];
         H[7] = h + H[7];
+        cout<<"round"<<i<<endl;
     }
-    string s;
-    for (auto i : H){
-        cout<<i;
+    // Convert final hash values to hexadecimal and return as a string
+    stringstream ss;
+    for (auto i : H) {
+        ss << hex << setw(8) << setfill('0') << i; // Format the output to be 8 hex digits
     }
-    return "complete";
+    
+    return ss.str(); 
 }
