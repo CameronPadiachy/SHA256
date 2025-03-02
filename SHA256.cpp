@@ -124,7 +124,31 @@ string SHA256:: sha_hash(){
         h = H[7];
 
         uint32_t T1, T2;
-        
-
+        bitset<32>* W = message_schedule(word, i*512);
+        for (int j = 0; j<=63; j++){
+            T1 = h + BigSigma_1(e) + Ch(e,f,g) + K[j] + (W[j].to_ulong());
+            T2 = BigSigma_0(a) + Maj(a,b,c);
+            h = g;
+            g = f;
+            f = e;
+            e = d+T1;
+            d = c;
+            c = b;
+            b = a;
+            a = T1 + T2;
+        }
+        H[0] = a + H[0];
+        H[1] = b + H[1];
+        H[2] = c + H[2];
+        H[3] = d + H[3];
+        H[4] = e + H[4];
+        H[5] = f + H[5];
+        H[6] = g + H[6];
+        H[7] = h + H[7];
     }
+    string s;
+    for (auto i : H){
+        cout<<i;
+    }
+    return "complete";
 }
