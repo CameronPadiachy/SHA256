@@ -11,6 +11,11 @@ SHA256::SHA256(){
     initialize();
 }
 
+bitset<32> operator+(const bitset<32>& lhs, const bitset<32>& rhs) {
+    unsigned long result = (lhs.to_ulong() + rhs.to_ulong()) % (1UL << 32);
+    return bitset<32>(result);
+}
+
 void SHA256::initialize(){
     // initial hash value for algorithm
     H[0] = 0x6a09e667;
@@ -67,47 +72,59 @@ uint32_t SHA256::Maj(uint32_t x, uint32_t y, uint32_t z){
     return (x & y) ^ (x & z) ^ (y & z);
 }
 
-uint32_t SHA256::S(uint32_t x, int y){
+template <typename T> T SHA256::S(T x, int y){
     return (x>>y)|(x<<(32-y));
 }
 
-uint32_t SHA256::R(uint32_t x, int y){
+template <typename T> T SHA256::R(T x, int y){
     return (x>>y);
 }
 
 uint32_t SHA256::BigSigma_0(uint32_t x){
-    return ( S(x,2) ^ S(x, 13) ^ S(x, 22));
+    return ( S<uint32_t>(x,2) ^ S<uint32_t>(x, 13) ^ S<uint32_t>(x, 22));
 }
 
 uint32_t SHA256::BigSigma_1(uint32_t x){
-    return (S(x,6) ^ S(x, 11) ^ S(x, 25));
+    return (S<uint32_t>(x,6) ^ S<uint32_t>(x, 11) ^ S<uint32_t>(x, 25));
 }
 
-uint32_t SHA256::sigma_0(uint32_t x){
-    return (S(x,7) ^ S(x, 18) ^ R(x, 3));
+template <typename T> T SHA256::sigma_0(T x){
+    return (S<T>(x,7) ^ S<T>(x, 18) ^ R<T>(x, 3));
 }
 
-uint32_t SHA256::sigma_1(uint32_t x){
-    return (S(x,17) ^ S(x, 19) ^ R(x, 10));
+template <typename T> T SHA256::sigma_1(T x){
+    return (S<T>(x,17) ^ S<T>(x, 19) ^ R<T>(x, 10));
 }
 
-
-
+bitset<32>* SHA256::message_schedule(vector<bitset<8>> padded_in, size_t index){
+    bitset<32>* w_p = new bitset<32>[64];
+    for (int i=0; i<64; i++){
+        bitset<32> temp(padded_in[index + i].to_ulong());
+        w_p[i / 4] |= (temp << (24 - (8 * (i % 4))));
+    }
+    for (int j=16; j<=63; j++){
+        w_p[j] = sigma_1(w_p[j-2]) + w_p[j-7] + sigma_0(w_p[j-15]) + w_p[j-16];
+    }
+    return w_p;
+}
 
 string SHA256:: sha_hash(){
     string input;
     cin >> input;
     vector<bitset<8>> word = padding(input);
     int word_size = word.size()*8;
-    a = H[0];
-    b = H[1];
-    c = H[2];
-    d = H[3];
-    e = H[4];
-    f = H[5];
-    g = H[6];
-    h = H[7];
-    for (int i=0; i<word_size; i++){
+    for (int i=0; i<=word_size/512; i++){ //parsing paddedmessage into 512 bit blocks
+        a = H[0];
+        b = H[1];
+        c = H[2];
+        d = H[3];
+        e = H[4];
+        f = H[5];
+        g = H[6];
+        h = H[7];
+
+        uint32_t T1, T2;
         
+
     }
 }
