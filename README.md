@@ -25,8 +25,10 @@ This is the core hashing engine only. A simple web server for hashing via HTTP r
 
 ## 💻 How to Use
 If you wish to test the current hasher, ensure you have a compatible C++ compiler installed. Then run the following comands in terminal.
+```bash
 g++ -std=c++17 testing.cpp -o sha256
 ./sha256
+```
 Follow the given prompts.
 
 
